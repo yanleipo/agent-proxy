@@ -30,12 +30,12 @@ endif
 
 ## Windows options ##
 ifeq ($(ARCH),)
-CFLAGS = /GZ /Z7 /MTd -DDEBUG -nologo
+CFLAGS = -g -Wall -Wno-unused-parameter -D_WIN32
 LINKFLAGS = 
-CC = cl
+CC = gcc
 #Change .o to .obj
-OBJS:=$(patsubst %.o,%.obj,$(OBJS))
-TLSPATH_INC=-I T:/rome_tls/x86-win/encap/sdk0204/include
+#TLSPATH_INC=-I "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.31.31103/atlmfc/include"
+TLSPATH_INC=-I "C:/mingw64/x86_64-w64-mingw32/include"
 ## Unix Options ##
 else
 CFLAGS = -g -Wall -Wno-unused-parameter -D$(ARCH)
@@ -48,7 +48,7 @@ all: $(CROSS_COMPILE)agent-proxy
 ## Build for win32 or unix
 ifeq ($(ARCH),)
 $(CROSS_COMPILE)agent-proxy: $(OBJS)
-	$(CC) -DAGENT_VER=$(AGENTVER) $(LINKFLAGS) $(CFLAGS) -o $(extpath)$@ $(OBJS) wsock32.lib
+	$(CC) -DAGENT_VER=$(AGENTVER) $(LINKFLAGS) $(CFLAGS) -o $(extpath)$@ $(OBJS) -L"C:/Program Files (x86)/Windows Kits/10/Lib/10.0.19041.0/um/x86" -lwsock32
 else
 $(CROSS_COMPILE)agent-proxy: $(OBJS)
 	$(CC) -DAGENT_VER=$(AGENTVER) $(CFLAGS) -o $(extpath)$@ $(OBJS) $(LDLIBS)

@@ -24,6 +24,8 @@
 #include <sys/types.h>
 #ifdef _WIN32
 #include <winsock.h>
+#include <fcntl.h>
+#include <unistd.h>
 typedef unsigned int socklen_t;
 #define CLOSESOCKET(fd) closesocket(fd)
 #else /* ! _WIN32 */
@@ -420,8 +422,13 @@ static int setup_local_port(struct port_st *lport, char *port,
 		lport->sock = fileno(stdin);
 		lport->type = STDINOUT;
 		/* Switch to non-blocking mode */
+		#if 0
 		fcntl(lport->sock, F_SETFL,
 		      fcntl(lport->sock, F_GETFL) | O_NONBLOCK);
+		#else
+		fcntl(lport->sock, F_SETFL,
+		      fcntl(lport->sock, F_GETFL));
+		#endif
 	} else
 #endif
 	if (strncmp("udp:", port, 4) == 0)
@@ -643,7 +650,11 @@ static int setup_remote_port(struct port_st *rport, char *host, char *port)
 				return 1;
 			}
 		}
+		#if 0
 		rport->sock = open(port, O_RDONLY|O_NONBLOCK);
+		#else
+		rport->sock = open(port, O_RDONLY);
+		#endif
 		if (rport->sock < 0) {
 			fprintf(stderr, "Error opening fifo\n");
 			return 1;
@@ -658,7 +669,7 @@ static int setup_remote_port(struct port_st *rport, char *host, char *port)
 		rport->next = rports;
 		rports = rport;
 		FD_SET(rport->sock, &master_rds);
-	} else if (port[0] == '/' || port[0] == 'C' || port[0] == 'c') {
+	} else if (port[0] == '/' || port[0] == 'C' || port[0] == 'c' || port[0] == '\') {
 		char *baudinfo;
 		if ((baudinfo = strchr(port, ','))) {
 			*baudinfo = '\0';
@@ -679,8 +690,13 @@ static int setup_remote_port(struct port_st *rport, char *host, char *port)
 			setstopbits(rport->sock, "1");
 			setcondefaults(rport->sock);
 			rport->type = PORT_RS232;
+			#if 0
 			fcntl(rport->sock, F_SETFL,
 			      fcntl(rport->sock, F_GETFL) | O_NONBLOCK);
+			#else
+			fcntl(rport->sock, F_SETFL,
+			      fcntl(rport->sock, F_GETFL));
+			#endif
 			rport->portwrite = rs232_portwrite;
 			rport->portread = rs232_portread;
 			rport->portclose = rs232_portclose;
@@ -1319,7 +1335,11 @@ fifo_out:
 	} else {
 		close(iport->sock);
 		FD_CLR(iport->sock, &master_rds);
+		#if 0
 		iport->sock = open(fifo_con_file, O_RDONLY|O_NONBLOCK);
+		#else
+		iport->sock = open(fifo_con_file, O_RDONLY);
+		#endif
 		if (iport->sock < 0) {
 			fprintf(stderr, "Error opening fifo\r\n");
 			exit(1);
